@@ -1,0 +1,47 @@
+{
+  "name": "@zenweb/tenant",
+  "version": "3.1.0",
+  "description": "Zenweb Tenant module",
+  "exports": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "rimraf dist && tsc",
+    "prepublishOnly": "npm run build",
+    "dbgen": "cd example && zenorm-generate .dbgen.json",
+    "dev": "cd example && cross-env DEBUG=* ts-node app"
+  },
+  "author": {
+    "name": "YeFei",
+    "email": "316606233@qq.com"
+  },
+  "keywords": [
+    "web",
+    "app",
+    "http",
+    "framework",
+    "koa",
+    "database",
+    "model",
+    "zenweb",
+    "zenorm",
+    "orm",
+    "tenant"
+  ],
+  "license": "MIT",
+  "repository": "https://github.com/yefei/zenweb-tenant",
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@zenorm/generate": "^1.2.0",
+    "@zenorm/generate-mysql": "^1.2.0",
+    "@zenweb/core": "^3.5.1",
+    "@zenweb/mysql": "^3.5.1",
+    "@zenweb/repositories": "^3.0.0",
+    "cross-env": "^7.0.3",
+    "rimraf": "^4.3.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.5",
+    "zenorm": "^3.27.1"
+  }
+}
