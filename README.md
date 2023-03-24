@@ -8,7 +8,7 @@
 
 ```bash
 # 生产依赖
-npm install @zenweb/tenant @zenweb/mysql @zenweb/repositories
+npm install @zenweb/tenant @zenweb/mysql @zenweb/repositories zenorm
 
 # 开发依赖
 npm install @zenorm/generate @zenorm/generate-mysql --save-dev
