@@ -7,7 +7,10 @@
 ## 安装
 
 ```bash
-npm install @zenweb/mysql @zenweb/orm
+# 生产依赖
+npm install @zenweb/tenant @zenweb/mysql @zenweb/repositories
+
+# 开发依赖
 npm install @zenorm/generate @zenorm/generate-mysql --save-dev
 ```
 
@@ -55,90 +58,57 @@ npm run dbgen
 
 ```ts title="src/index.ts"
 import { create } from 'zenweb';
-import modMySQL from '@zenweb/mysql';
-import modORM from '@zenweb/orm';
+import modTenant, { Tenant } from '@zenweb/tenant';
 import { Repositories } from './model';
 
 export const app = create();
 
 /**
- * 租户配置描述
- */
-interface TenantConfig {
-  /**
-   * 所属数据库服务器
-   */
-  server: string;
-
-  /**
-   * 所属数据库名称
-   */
-  dbname: string;
-};
-
-/**
  * 租户配置信息
  */
-const tenantsConfig: { [domain: string]: TenantConfig } = {
+const tenantsConfig: { [id: string]: Tenant } = {
   'a.demo.com': {
     server: 'S1',
-    dbname: 'db_1',
+    database: 'db_1',
   },
   'b.demo.com': {
     server: 'S2',
-    dbname: 'db_2',
+    database: 'db_2',
   },
 };
 
-app.setup(modMySQL({
-  pools: {
-    // 数据库服务器设置
-    S1_MASTER: {
-      host: '127.0.0.1',
-      port: 3306,
-      user: 'root',
-      password: '',
-      charset: 'utf8mb4',
-      timezone: '+08:00',
-      connectionLimit: 100,
-    },
-    S2_MASTER: {
-      host: '127.0.0.1',
-      port: 3306,
-      user: 'root',
-      password: '',
-      charset: 'utf8mb4',
-      timezone: '+08:00',
-      connectionLimit: 100,
-    },
-  },
-  // 使用 Context 初始化连接池
-  withContext: true,
-  // 所属数据库服务器切换
-  getPoolConnectionBeforeWithContext: ctx => {
-    const tennat = tenantsConfig[ctx.host];
-    if (!tennat) {
+app.setup(modTenant({
+  tenantGetter: ctx => {
+    const tenant = tenantsConfig[ctx.host];
+    if (!tenant) {
       throw new Error('Tennat not exists: ' + ctx.host);
     }
-    return opt => {
-      console.log(opt);
-      return {
-        // 将原有选择规则增加前缀
-        pattern: tennat.server + '_' + (opt?.pattern || '*'),
-        selector: opt?.selector,
-      }
-    };
+    return tenant;
   },
-  // 所属数据库切换 (复用连接池)
-  getPoolConnectionAfterWithContext: ctx => {
-    const tennat = tenantsConfig[ctx.host];
-    return conn => new Query(conn).query('USE `' + tennat.dbname + '`');
+  pools: {
+    S1: {
+      MASTER: {
+        host: '127.0.0.1',
+        port: 3306,
+        user: 'root',
+        password: '123456',
+        charset: 'utf8mb4',
+        timezone: '+08:00',
+        connectionLimit: 100,
+      },
+    },
+    S2: {
+      MASTER: {
+        host: '127.0.0.1',
+        port: 3306,
+        user: 'root',
+        password: '',
+        charset: 'utf8mb4',
+        timezone: '+08:00',
+        connectionLimit: 100,
+      },
+    },
   },
-}));
-
-// 设置 ORM
-app.setup(modORM({
-  contextQuery: (ctx) => ctx.mysql,
   Repositories,
 }));
 ```
